@@ -15,6 +15,9 @@ Player::Player()
 {
 	sprite.setTexture(AssetManager::RequestTexture("Assets/player_1.png"));
 	sprite.setScale(3.0f, 3.0f);
+
+	collisionScale = sf::Vector2f(2.6f, 3.0f);
+	collisionOffset = sf::Vector2f(25, 25);
 }
 
 void Player::Update(sf::Time frameTime)

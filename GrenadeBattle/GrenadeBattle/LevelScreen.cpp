@@ -13,6 +13,7 @@ void LevelScreen::Update(sf::Time frameTime)
 	if (gameRunning)
 	{
 		player.Update(frameTime);
+		player.SetColliding(false);
 	}
 	else
 	{
