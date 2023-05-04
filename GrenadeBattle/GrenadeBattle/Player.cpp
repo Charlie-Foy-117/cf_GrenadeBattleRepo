@@ -1,20 +1,20 @@
 #include "Player.h"
+#include "AssetManager.h"
 
 enum class PhysicsType
 {
-	FORWARD_EULER,
-	BACKWARD_EULER,
 	SYMPLECTIC_EULER,
-	POSITION_VERLET,
 	VELOCITY_VERLET
 };
 
 Player::Player()
 	:SpriteObject()
-	, twoFramesOldPosition()
+	, twoFramesOldPosition(100, 300)
 	, velocity()
 	, acceleration()
 {
+	sprite.setTexture(AssetManager::RequestTexture("Assets/player_1.png"));
+	sprite.setScale(3.0f, 3.0f);
 }
 
 void Player::Update(sf::Time frameTime)
@@ -24,8 +24,9 @@ void Player::Update(sf::Time frameTime)
 	//
 	//
 	const float DRAG = 10.0f;
-	const PhysicsType physics = PhysicsType::POSITION_VERLET;
+	const PhysicsType physics = PhysicsType::VELOCITY_VERLET;
 	sf::Vector2f lastFramePos = GetPosition();
+	sf::Vector2f halfFrameVelocity;
 
 	switch (physics)
 	{
@@ -34,7 +35,7 @@ void Player::Update(sf::Time frameTime)
 		//velocity verlet
 		 
 		//get the half frame velocity using the previous frame's acceleration
-		sf::Vector2f halfFrameVelocity = velocity + acceleration * frameTime.asSeconds() / 2.0f;
+		halfFrameVelocity = velocity + acceleration * frameTime.asSeconds() / 2.0f;
 
 		//get new frame's position using half frame velocity
 		SetPosition(GetPosition() + halfFrameVelocity * frameTime.asSeconds());
@@ -77,7 +78,7 @@ void Player::Update(sf::Time frameTime)
 void Player::UpdateAcceleration()
 {
 	const float ACCEL = 10000;
-	const float GRAVITY = 1000;
+	const float GRAVITY = 5000;
 
 	//Update acceleration
 	acceleration.x = 0;

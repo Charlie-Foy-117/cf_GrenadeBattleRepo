@@ -12,6 +12,7 @@ void SpriteObject::Update(sf::Time frameTime)
 
 void SpriteObject::Draw(sf::RenderTarget& target)
 {
+	target.draw(sprite);
 }
 
 sf::Vector2f SpriteObject::GetPosition()
