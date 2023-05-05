@@ -1,6 +1,8 @@
 #pragma once
 #include "Screen.h"
 #include "Player.h"
+#include "Platform.h"
+
 class LevelScreen :
     public Screen
 {
@@ -16,6 +18,7 @@ private:
     void Restart();
 
     Player player;
+    Platform platform;
 
     bool gameRunning;
 };
