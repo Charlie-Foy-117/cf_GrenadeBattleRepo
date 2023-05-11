@@ -22,7 +22,7 @@ void SpriteObject::Draw(sf::RenderTarget& target)
 	//Practical Task - Collision Geometry
 	//
 	//
-	bool drawCollier = true;
+	bool drawCollier = false;
 	if (drawCollier)
 	{
 		switch (collisionType)
