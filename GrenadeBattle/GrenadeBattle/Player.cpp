@@ -18,7 +18,7 @@ Player::Player()
 	collisionOffset = sf::Vector2f(25, 25);
 
 	//add sprites to my pips
-	const int NUM_PIPS = 50;
+	const int NUM_PIPS = 10;
 	for (size_t i = 0; i < NUM_PIPS; ++i)
 	{
 		pips.push_back(sf::Sprite());
