@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "AssetManager.h"
+#include "VectorHelper.h"
 
 enum class PhysicsType
 {
@@ -10,6 +11,10 @@ enum class PhysicsType
 Player::Player()
 	: PhysicsObject()
 	, pips()
+	, grenadeVelocity()
+	, controllerDeadzone(20.0f)
+	, player1Controller(0)
+	, player2Controller(1)
 {
 	sprite.setTexture(AssetManager::RequestTexture("Assets/player_1.png"));
 	sprite.setScale(3.0f, 3.0f);
@@ -28,6 +33,8 @@ Player::Player()
 
 void Player::Update(sf::Time frameTime)
 {
+	UpdatePipAngle();
+
 	//Practical Task - Physics Alternatives
 	//
 	//
@@ -91,7 +98,7 @@ void Player::Draw(sf::RenderTarget& target)
 	float pipTimeStep = 0.1f;
 	for (size_t i = 0; i < pips.size(); ++i)
 	{
-		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 2000), sf::Vector2f(500, -1000), sf::Vector2f(500, 500)));
+		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 2000), grenadeVelocity, GetPosition()));
 		pipTime += pipTimeStep;
 		target.draw(pips[i]);
 	}
@@ -138,13 +145,31 @@ void Player::UpdateAcceleration()
 	{
 		acceleration.x = ACCEL;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Joystick::isButtonPressed(0, 1))
 	{
 		acceleration.y = -ACCEL;
 	}
 	else
 	{
 		acceleration.y = GRAVITY;
+	}
+
+
+	if (sf::Joystick::isConnected(0))
+	{
+		float axisX = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::X);
+
+		if (abs(axisX) > controllerDeadzone)
+		{
+			if (axisX > 0)
+			{
+				acceleration.x = ACCEL;
+			}
+			if (axisX < 0)
+			{
+				acceleration.x = -ACCEL;
+			}
+		}
 	}
 }
 
@@ -158,4 +183,57 @@ sf::Vector2f Player::GetPipPosition(float pipTime, sf::Vector2f gravity, sf::Vec
 	pipPosition = (gravity / 2.0f) * pipTime * pipTime + startVelocity * pipTime + startPosition;
 
 	return pipPosition;
+}
+
+void Player::SetGrenadeVelocity(float xVel, float yVel)
+{
+	grenadeVelocity = sf::Vector2f(xVel, yVel);
+}
+
+void Player::UpdatePipAngle()
+{
+	/*
+	const float VELOCITY = 1;
+
+	if (sf::Joystick::isConnected(0))
+	{
+		float axisU = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::U);
+		float axisV = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::V);
+
+		if (abs(axisU) > controllerDeadzone || abs(axisV) > controllerDeadzone)
+		{
+			if (axisU > 0)
+			{
+				grenadeVelocity.x += VELOCITY;
+			}
+			if (axisU < 0)
+			{
+				grenadeVelocity.x += -VELOCITY;
+			}
+			if (axisV > 0)
+			{
+				grenadeVelocity.y += VELOCITY;
+			}
+			if (axisV < 0)
+			{
+				grenadeVelocity.y += -VELOCITY;
+			}
+		}
+	}*/
+
+	if (sf::Joystick::isConnected(0))
+	{
+		float speed = 15.0f;
+		float axisU = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::U);
+		float axisV = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::V);
+
+		sf::Vector2f direction = sf::Vector2f(axisU, axisV);
+
+		if (abs(axisU) > controllerDeadzone || abs(axisV) > controllerDeadzone)
+		{
+			VectorHelper::Normalise(direction);
+			sf::Vector2f newVelocity = sf::Vector2f(speed * direction);
+			SetGrenadeVelocity(newVelocity.x, newVelocity.y);
+		}
+	}
 }
