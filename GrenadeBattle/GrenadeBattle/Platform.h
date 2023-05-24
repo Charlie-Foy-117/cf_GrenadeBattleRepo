@@ -5,6 +5,6 @@ class Platform :
 {
 public:
 
-    Platform();
+    Platform(sf::Vector2f newPosition);
 };
 

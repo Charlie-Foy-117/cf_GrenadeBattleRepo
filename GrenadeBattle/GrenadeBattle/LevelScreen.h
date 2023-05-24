@@ -17,9 +17,14 @@ private:
 
     void Restart();
 
+    bool LoadLevel(int levelNumber);
+    bool LoadLevel(std::string fileName);
+
     Player player;
-    Platform platform;
 
     bool gameRunning;
+    int currentLevel;
+
+    std::vector<Platform*> platforms;
 };
 
