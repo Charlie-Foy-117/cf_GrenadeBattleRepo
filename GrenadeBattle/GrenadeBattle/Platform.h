@@ -1,7 +1,8 @@
 #pragma once
-#include "SpriteObject.h"
+#include "PhysicsObject.h"
+
 class Platform :
-    public SpriteObject
+    public PhysicsObject
 {
 public:
 

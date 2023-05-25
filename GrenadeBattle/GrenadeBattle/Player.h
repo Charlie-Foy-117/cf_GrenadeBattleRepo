@@ -1,16 +1,18 @@
 #pragma once
 #include "PhysicsObject.h"
 
+class LevelScreen;
+
 class Player:
     public PhysicsObject
 {
 public:
 
-    Player();
+    Player(LevelScreen* newLevelscreen, int playerNum);
 
     void Update(sf::Time frameTime) override;
     void Draw(sf::RenderTarget& target) override;
-    void HandleCollision(SpriteObject& other) override;
+    void HandleCollision(PhysicsObject& other) override;
 
 private:
 
@@ -20,16 +22,20 @@ private:
     void UpdatePipAngle();
     void SetGrenadeVelocity(float xVel, float yVel);
 
-    sf::Vector2f twoFramesOldPosition;
-    sf::Vector2f velocity;
-    sf::Vector2f acceleration;
-
     std::vector<sf::Sprite> pips;
     sf::Vector2f grenadeVelocity;
 
     float controllerDeadzone;
-    int player1Controller;
-    int player2Controller;
+
+    LevelScreen* levelScreen;
+
+    sf::Clock cooldownClock;
+    float cooldown;
+
+    sf::Clock onGroundTimer;
+    float onGroundCooldown;
+
+    int currentPlayer;
 };
 
 

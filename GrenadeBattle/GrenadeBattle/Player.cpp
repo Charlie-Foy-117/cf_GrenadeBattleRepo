@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "AssetManager.h"
 #include "VectorHelper.h"
+#include "LevelScreen.h"
 
 enum class PhysicsType
 {
@@ -8,16 +9,28 @@ enum class PhysicsType
 	VELOCITY_VERLET
 };
 
-Player::Player()
+Player::Player(LevelScreen* newLevelscreen, int playerNum)
 	: PhysicsObject()
 	, pips()
 	, grenadeVelocity()
 	, controllerDeadzone(20.0f)
-	, player1Controller(0)
-	, player2Controller(1)
+	, levelScreen(newLevelscreen)
+	, cooldownClock()
+	, cooldown(0.5f)
+	, currentPlayer(playerNum)
+	, onGroundTimer()
+	, onGroundCooldown(0.1f)
 {
-	sprite.setTexture(AssetManager::RequestTexture("Assets/player_1.png"));
-	sprite.setScale(3.0f, 3.0f);
+	if (currentPlayer == 0)
+	{
+		sprite.setTexture(AssetManager::RequestTexture("Assets/player_1_stand.png"));
+		sprite.setScale(3.0f, 3.0f);
+	}
+	else if (currentPlayer == 1)
+	{
+		sprite.setTexture(AssetManager::RequestTexture("Assets/player_2_stand.png"));
+		sprite.setScale(3.0f, 3.0f);
+	}
 
 	collisionScale = sf::Vector2f(2.6f, 3.0f);
 	collisionOffset = sf::Vector2f(25, 25);
@@ -33,61 +46,20 @@ Player::Player()
 
 void Player::Update(sf::Time frameTime)
 {
+	PhysicsObject::Update(frameTime);
+
 	UpdatePipAngle();
 
-	//Practical Task - Physics Alternatives
-	//
-	//
-	const float DRAG = 10.0f;
-	const PhysicsType physics = PhysicsType::VELOCITY_VERLET;
-	sf::Vector2f lastFramePos = GetPosition();
-	sf::Vector2f halfFrameVelocity;
-
-	switch (physics)
+	if (cooldownClock.getElapsedTime().asSeconds() > cooldown)
 	{
-	case PhysicsType::VELOCITY_VERLET:
-
-		//velocity verlet
-
-		//get the half frame velocity using the previous frame's acceleration
-		halfFrameVelocity = velocity + acceleration * frameTime.asSeconds() / 2.0f;
-
-		//get new frame's position using half frame velocity
-		SetPosition(GetPosition() + halfFrameVelocity * frameTime.asSeconds());
-
-		//update the acceleration
-		UpdateAcceleration();
-
-		//get new frame's velocity using half frame velocity and updated acceleration
-		velocity = halfFrameVelocity + acceleration * frameTime.asSeconds() / 2.0f;
-
-		//calculate the drag
-		velocity = velocity - velocity * DRAG * frameTime.asSeconds();
-
-		break;
-	case PhysicsType::SYMPLECTIC_EULER:
-
-		//semi-implicit / symplectic euler
-
-		//update the velocity to account for acceleration
-		velocity = velocity + acceleration * frameTime.asSeconds();
-
-		//calculate the drag
-		velocity = velocity - velocity * DRAG * frameTime.asSeconds();
-
-		//set the new position using the calculted velocity
-		SetPosition(GetPosition() + velocity * frameTime.asSeconds());
-
-		//update the acceleration
-		UpdateAcceleration();
-
-		break;
-	default:
-		break;
-
-		//two frames ago (for next frame)
-		twoFramesOldPosition = lastFramePos;
+		if (sf::Joystick::isButtonPressed(currentPlayer, 2))
+		{
+			levelScreen->FireGrenade(sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 50.0f), grenadeVelocity, currentPlayer);
+			cooldownClock.restart();
+		}
 	}
+	
+	
 }
 
 void Player::Draw(sf::RenderTarget& target)
@@ -98,13 +70,13 @@ void Player::Draw(sf::RenderTarget& target)
 	float pipTimeStep = 0.1f;
 	for (size_t i = 0; i < pips.size(); ++i)
 	{
-		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 2000), grenadeVelocity, GetPosition()));
+		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 2000), grenadeVelocity, sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 50.0f)));
 		pipTime += pipTimeStep;
 		target.draw(pips[i]);
 	}
 }
 
-void Player::HandleCollision(SpriteObject& other)
+void Player::HandleCollision(PhysicsObject& other)
 {
 	sf::Vector2f depth = GetCollisionDepth(other);
 	sf::Vector2f newPosition = GetPosition();
@@ -112,26 +84,30 @@ void Player::HandleCollision(SpriteObject& other)
 	if (abs(depth.x) < abs(depth.y))
 	{
 		//move in x direction
-		newPosition.x += depth.x;
+		newPosition.x += depth.x * 2.0f;
 		velocity.x = 0;
-		acceleration.x = 0;
 	}
 	else
 	{
-		if (velocity.y > 0)
+		//move in y direction
+		newPosition.y += depth.y;
+
+		if (depth.y < 0)
 		{
-			//move in y direction
-			newPosition.y += depth.y;
-			velocity.y = 0;
-			acceleration.y = 0;
+			onGroundTimer.restart();
+
+			if (velocity.y > 0)
+				velocity.y = 0;
 		}
 	}
+	SetPosition(newPosition);
 }
 
 void Player::UpdateAcceleration()
 {
 	const float ACCEL = 10000;
 	const float GRAVITY = 5000;
+	const float JUMPSPEED = 1000;
 
 	//Update acceleration
 	acceleration.x = 0;
@@ -145,9 +121,12 @@ void Player::UpdateAcceleration()
 	{
 		acceleration.x = ACCEL;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Joystick::isButtonPressed(0, 1))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Joystick::isButtonPressed(currentPlayer, 0))
 	{
-		acceleration.y = -ACCEL;
+		if (onGroundTimer.getElapsedTime().asSeconds() <= onGroundCooldown)
+		{
+			velocity.y = -JUMPSPEED;
+		}
 	}
 	else
 	{
@@ -157,7 +136,7 @@ void Player::UpdateAcceleration()
 
 	if (sf::Joystick::isConnected(0))
 	{
-		float axisX = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::X);
+		float axisX = sf::Joystick::getAxisPosition(currentPlayer, sf::Joystick::X);
 
 		if (abs(axisX) > controllerDeadzone)
 		{
@@ -192,40 +171,11 @@ void Player::SetGrenadeVelocity(float xVel, float yVel)
 
 void Player::UpdatePipAngle()
 {
-	/*
-	const float VELOCITY = 1;
-
-	if (sf::Joystick::isConnected(0))
-	{
-		float axisU = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::U);
-		float axisV = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::V);
-
-		if (abs(axisU) > controllerDeadzone || abs(axisV) > controllerDeadzone)
-		{
-			if (axisU > 0)
-			{
-				grenadeVelocity.x += VELOCITY;
-			}
-			if (axisU < 0)
-			{
-				grenadeVelocity.x += -VELOCITY;
-			}
-			if (axisV > 0)
-			{
-				grenadeVelocity.y += VELOCITY;
-			}
-			if (axisV < 0)
-			{
-				grenadeVelocity.y += -VELOCITY;
-			}
-		}
-	}*/
-
 	if (sf::Joystick::isConnected(0))
 	{
 		float speed = 15.0f;
-		float axisU = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::U);
-		float axisV = sf::Joystick::getAxisPosition(player1Controller, sf::Joystick::V);
+		float axisU = sf::Joystick::getAxisPosition(currentPlayer, sf::Joystick::U);
+		float axisV = sf::Joystick::getAxisPosition(currentPlayer, sf::Joystick::V);
 
 		sf::Vector2f direction = sf::Vector2f(axisU, axisV);
 

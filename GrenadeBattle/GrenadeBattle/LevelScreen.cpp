@@ -4,10 +4,11 @@
 
 LevelScreen::LevelScreen(Game* newGamePointer)
 	: Screen(newGamePointer)
-	, player()
+	, players()
 	, gameRunning(true)
 	, currentLevel(1)
 	, platforms()
+	, grenades()
 {
 	Restart();
 }
@@ -16,19 +17,32 @@ void LevelScreen::Update(sf::Time frameTime)
 {
 	if (gameRunning)
 	{
-		player.Update(frameTime);
-		player.SetColliding(false);
-
-		for (size_t i = 0; i < platforms.size(); i++)
+		for (size_t i = 0; i < players.size(); i++)
 		{
-			if (player.CheckCollision(*platforms[i]))
+			players[i]->Update(frameTime);
+			players[i]->SetColliding(false);
+		}
+
+		for (size_t i = 0; i < grenades.size(); i++)
+		{
+			grenades[i]->Update(frameTime);
+			grenades[i]->SetColliding(false);
+		}
+
+		for (size_t i = 0; i < players.size(); i++)
+		{
+			for (size_t j = 0; j < platforms.size(); j++)
 			{
-				player.SetColliding(true);
-				platforms[i]->SetColliding(true);
-				player.HandleCollision(*platforms[i]);
-				platforms[i]->HandleCollision(player);
+				if (players[i]->CheckCollision(*platforms[j]))
+				{
+					players[i]->SetColliding(true);
+					platforms[j]->SetColliding(true);
+					players[i]->HandleCollision(*platforms[j]);
+					platforms[j]->HandleCollision(*players[i]);
+				}
 			}
 		}
+
 	}
 	else
 	{
@@ -42,11 +56,35 @@ void LevelScreen::Draw(sf::RenderTarget& target)
 	{
 		platforms[i]->Draw(target);
 	}
-	player.Draw(target);
+	for (size_t i = 0; i < grenades.size(); i++)
+	{
+		grenades[i]->Draw(target);
+	}
+	for (size_t i = 0; i < players.size(); i++)
+	{
+		players[i]->Draw(target);
+	}
+}
+
+void LevelScreen::FireGrenade(sf::Vector2f position, sf::Vector2f fireVelocity, int playerNum)
+{
+	grenades.push_back(new Grenade());
+	grenades.back()->SetPlayerNum(playerNum);
+	grenades.back()->SetPosition(position);
+	grenades.back()->SetFireVelocity(fireVelocity);
 }
 
 void LevelScreen::Restart()
 {
+	for (size_t i = players.size(); i > 0; i--)
+	{
+		delete players[i];
+		players[i] = nullptr;
+	}
+
+	players.push_back(new Player(this, 0));
+	players.push_back(new Player(this, 1));
+
 	LoadLevel(currentLevel);
 }
 
@@ -94,8 +132,8 @@ bool LevelScreen::LoadLevel(std::string fileName)
 	float y = 0.0f;
 
 	//define the spacing we will use for our grid
-	const float X_SPACE = 35.0f;
-	const float Y_SPACE = 35.0f;
+	const float X_SPACE = 50.0f;
+	const float Y_SPACE = 50.0f;
 
 	//read each character one by one from the file
 	char ch;
@@ -116,7 +154,10 @@ bool LevelScreen::LoadLevel(std::string fileName)
 		}
 		else if (ch == 'P')
 		{
-			player.SetPosition(x, y);
+			for (size_t i = 0; i < players.size(); i++)
+			{
+				players[i]->SetPosition(x, y);
+			}
 		}
 		else if (ch == 'T')
 		{
