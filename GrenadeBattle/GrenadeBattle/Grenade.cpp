@@ -12,6 +12,11 @@ Grenade::Grenade()
 	collisionScale = sf::Vector2f(0.8f, 0.8f);
 }
 
+void Grenade::Update(sf::Time frameTime)
+{
+	PhysicsObject::Update(frameTime);
+}
+
 void Grenade::SetPlayerNum(int newPlayerNum)
 {
 	playerNum = newPlayerNum;
@@ -29,4 +34,7 @@ int Grenade::GetPlayerNum()
 
 void Grenade::UpdateAcceleration()
 {
+	const float GRAVITY = 5000;
+
+	acceleration.y = GRAVITY;
 }
