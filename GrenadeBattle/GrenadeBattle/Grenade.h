@@ -12,6 +12,8 @@ public:
     void SetPlayerNum(int newPlayerNum);
     void SetFireVelocity(sf::Vector2f newVelocity);
 
+    void HandleCollision(PhysicsObject& other) override;
+
     int GetPlayerNum();
 
 private:

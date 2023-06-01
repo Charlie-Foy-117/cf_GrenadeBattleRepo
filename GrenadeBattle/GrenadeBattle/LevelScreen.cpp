@@ -42,6 +42,21 @@ void LevelScreen::Update(sf::Time frameTime)
 				}
 			}
 		}
+		
+		for (size_t i = 0; i < grenades.size(); i++)
+		{
+			for (size_t j = 0; j < platforms.size(); j++)
+			{
+				if (grenades[i]->CheckCollision(*platforms[j]))
+				{
+					grenades[i]->SetColliding(true);
+					platforms[j]->SetColliding(true);
+					grenades[i]->HandleCollision(*platforms[j]);
+					platforms[j]->HandleCollision(*grenades[i]);
+				}
+			}
+		}
+		
 
 	}
 	else
@@ -80,6 +95,11 @@ void LevelScreen::Restart()
 	{
 		delete players[i];
 		players[i] = nullptr;
+	}
+	for (size_t i = grenades.size(); i > 0; i--)
+	{
+		delete grenades[i];
+		grenades[i] = nullptr;
 	}
 
 	players.push_back(new Player(this, 0));

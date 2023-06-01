@@ -33,6 +33,7 @@ protected:
     sf::Vector2f collisionOffset;
     sf::Vector2f collisionScale;
     CollisionType collisionType;
+    bool hasDrag;
 
 private:
 

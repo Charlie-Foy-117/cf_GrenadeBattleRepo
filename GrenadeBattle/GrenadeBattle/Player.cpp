@@ -35,6 +35,8 @@ Player::Player(LevelScreen* newLevelscreen, int playerNum)
 	collisionScale = sf::Vector2f(2.6f, 3.0f);
 	collisionOffset = sf::Vector2f(25, 25);
 
+	hasDrag = true;
+
 	//add sprites to my pips
 	const int NUM_PIPS = 10;
 	for (size_t i = 0; i < NUM_PIPS; ++i)
@@ -54,7 +56,7 @@ void Player::Update(sf::Time frameTime)
 	{
 		if (sf::Joystick::isButtonPressed(currentPlayer, 2))
 		{
-			levelScreen->FireGrenade(sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 50.0f), grenadeVelocity, currentPlayer);
+			levelScreen->FireGrenade(sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 25.0f), grenadeVelocity, currentPlayer);
 			cooldownClock.restart();
 		}
 	}
@@ -70,7 +72,7 @@ void Player::Draw(sf::RenderTarget& target)
 	float pipTimeStep = 0.1f;
 	for (size_t i = 0; i < pips.size(); ++i)
 	{
-		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 2000), grenadeVelocity, sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 50.0f)));
+		pips[i].setPosition(GetPipPosition(pipTime, sf::Vector2f(0, 5000), grenadeVelocity, sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 25.0f)));
 		pipTime += pipTimeStep;
 		target.draw(pips[i]);
 	}
@@ -107,7 +109,7 @@ void Player::UpdateAcceleration()
 {
 	const float ACCEL = 10000;
 	const float GRAVITY = 5000;
-	const float JUMPSPEED = 1000;
+	const float JUMPSPEED = 1500;
 
 	//Update acceleration
 	acceleration.x = 0;
@@ -182,7 +184,7 @@ void Player::UpdatePipAngle()
 		if (abs(axisU) > controllerDeadzone || abs(axisV) > controllerDeadzone)
 		{
 			VectorHelper::Normalise(direction);
-			sf::Vector2f newVelocity = sf::Vector2f(speed * direction);
+			sf::Vector2f newVelocity = speed * direction;
 			SetGrenadeVelocity(newVelocity.x, newVelocity.y);
 		}
 	}

@@ -31,3 +31,13 @@ void SpriteObject::SetPosition(float newX, float newY)
 {
 	SetPosition(sf::Vector2f(newX, newY));
 }
+
+float SpriteObject::GetHeight()
+{
+	return sprite.getLocalBounds().height;
+}
+
+float SpriteObject::GetWidth()
+{
+	return sprite.getLocalBounds().width;
+}

@@ -16,6 +16,7 @@ PhysicsObject::PhysicsObject()
 	, collisionScale(1, 1)
 	, collisionType(CollisionType::AABB)
 	, colliding(false)
+	, hasDrag(false)
 {
 }
 
@@ -47,8 +48,11 @@ void PhysicsObject::Update(sf::Time frameTime)
 		//get new frame's velocity using half frame velocity and updated acceleration
 		velocity = halfFrameVelocity + acceleration * frameTime.asSeconds() / 2.0f;
 
-		//calculate the drag
-		velocity.x = velocity.x - velocity.x * DRAG * frameTime.asSeconds();
+		if (hasDrag)
+		{
+			//calculate the drag
+			velocity.x = velocity.x - velocity.x * DRAG * frameTime.asSeconds();
+		}
 
 		break;
 	case PhysicsType::SYMPLECTIC_EULER:
@@ -58,8 +62,11 @@ void PhysicsObject::Update(sf::Time frameTime)
 		//update the velocity to account for acceleration
 		velocity = velocity + acceleration * frameTime.asSeconds();
 
-		//calculate the drag
-		velocity.x = velocity.x - velocity.x * DRAG * frameTime.asSeconds();
+		if (hasDrag)
+		{
+			//calculate the drag
+			velocity.x = velocity.x - velocity.x * DRAG * frameTime.asSeconds();
+		}
 
 		//set the new position using the calculted velocity
 		SetPosition(GetPosition() + velocity * frameTime.asSeconds());
