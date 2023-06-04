@@ -92,7 +92,7 @@ void Player::HandleCollision(PhysicsObject& other)
 	else
 	{
 		//move in y direction
-		newPosition.y += depth.y;
+		newPosition.y += depth.y * 2.0f;
 
 		if (depth.y < 0)
 		{
