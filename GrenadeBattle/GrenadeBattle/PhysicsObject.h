@@ -35,11 +35,14 @@ protected:
     CollisionType collisionType;
     bool hasDrag;
 
-private:
-
     float GetCircleColliderRadius();
     sf::Vector2f GetCollisionCentre();
+
+public:
+
     sf::FloatRect GetAABB();
+private:
+
     bool colliding;
 };
 

@@ -1,6 +1,7 @@
 #include "Grenade.h"
 #include "AssetManager.h"
 #include "VectorHelper.h"
+#include "PhysicsObject.h"
 
 Grenade::Grenade()
 	: PhysicsObject()
@@ -30,8 +31,14 @@ void Grenade::SetFireVelocity(sf::Vector2f newVelocity)
 
 void Grenade::HandleCollision(PhysicsObject& other)
 {
+	//Practical Task - Reflection
+	//
+	//
+
 	sf::Vector2f depth = GetCollisionDepth(other);
 	sf::Vector2f newPosition = GetPosition();
+	sf::FloatRect otherAABB = other.GetAABB();
+	sf::Vector2f otherPlane;
 	sf::Vector2f otherLine1;
 	sf::Vector2f otherLine2;
 
@@ -40,20 +47,21 @@ void Grenade::HandleCollision(PhysicsObject& other)
 		//move in x direction
 		newPosition.x += depth.x;
 		
-		otherLine1 = sf::Vector2f(other.GetPosition());
-		otherLine2 = sf::Vector2f(other.GetPosition().x, other.GetPosition().y + other.GetHeight());
+		otherLine1 = sf::Vector2f(otherAABB.left, otherAABB.top);
+		otherLine2 = sf::Vector2f(otherAABB.left, otherAABB.top + other.GetHeight());
+		otherPlane = otherLine1 - otherLine2;
 	}
 	else
 	{
 		//move in y direction
 		newPosition.y += depth.y;
 
-		otherLine1 = sf::Vector2f(other.GetPosition());
-		otherLine2 = sf::Vector2f(other.GetPosition().x + GetWidth(), other.GetPosition().y);
+		otherLine1 = sf::Vector2f(otherAABB.left, otherAABB.top);
+		otherLine2 = sf::Vector2f(otherAABB.left + other.GetWidth(), otherAABB.top);
+		otherPlane = otherLine1 - otherLine2;
 
 	}
 
-	sf::Vector2f otherPlane = otherLine2 - otherLine1;
 	sf::Vector2f otherNormal = VectorHelper::GetNormal(otherPlane);
 	otherNormal = VectorHelper::Normalise(otherNormal);
 
