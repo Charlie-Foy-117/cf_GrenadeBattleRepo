@@ -55,7 +55,7 @@ void Grenade::HandleCollision(PhysicsObject& other)
 
 	sf::Vector2f otherPlane = otherLine2 - otherLine1;
 	sf::Vector2f otherNormal = VectorHelper::GetNormal(otherPlane);
-	VectorHelper::Normalise(otherNormal);
+	otherNormal = VectorHelper::Normalise(otherNormal);
 
 	sf::Vector2f reflection = VectorHelper::GetReflection(velocity, otherNormal);
 
