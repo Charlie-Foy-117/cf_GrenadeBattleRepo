@@ -146,9 +146,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="Easing.cpp" />
+    <ClCompile Include="EndText.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Grenade.cpp" />
     <ClCompile Include="LevelScreen.cpp" />
+    <ClCompile Include="LifeCounter.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PhysicsObject.cpp" />
     <ClCompile Include="Platform.cpp" />
@@ -159,9 +162,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="Easing.h" />
+    <ClInclude Include="EndText.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Grenade.h" />
     <ClInclude Include="LevelScreen.h" />
+    <ClInclude Include="LifeCounter.h" />
     <ClInclude Include="PhysicsObject.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="Player.h" />

@@ -16,10 +16,12 @@ Player::Player(LevelScreen* newLevelscreen, int playerNum)
 	, controllerDeadzone(20.0f)
 	, levelScreen(newLevelscreen)
 	, cooldownClock()
-	, cooldown(0.5f)
+	, cooldown(1.0f)
 	, currentPlayer(playerNum)
 	, onGroundTimer()
 	, onGroundCooldown(0.1f)
+	, lives(3)
+	, alive(true)
 {
 	if (currentPlayer == 0)
 	{
@@ -80,29 +82,60 @@ void Player::Draw(sf::RenderTarget& target)
 
 void Player::HandleCollision(PhysicsObject& other)
 {
-	sf::Vector2f depth = GetCollisionDepth(other);
-	sf::Vector2f newPosition = GetPosition();
-
-	if (abs(depth.x) < abs(depth.y))
+	if (typeid(other).name() == typeid(Grenade).name())
 	{
-		//move in x direction
-		newPosition.x += depth.x * 2.0f;
-		velocity.x = 0;
+		LoseLife();
 	}
 	else
 	{
-		//move in y direction
-		newPosition.y += depth.y * 2.0f;
+		sf::Vector2f depth = GetCollisionDepth(other);
+		sf::Vector2f newPosition = GetPosition();
 
-		if (depth.y < 0)
+		if (abs(depth.x) < abs(depth.y))
 		{
-			onGroundTimer.restart();
-
-			if (velocity.y > 0)
-				velocity.y = 0;
+			//move in x direction
+			newPosition.x += depth.x * 2.0f;
+			velocity.x = 0;
 		}
+		else
+		{
+			//move in y direction
+			newPosition.y += depth.y * 2.0f;
+
+			if (depth.y < 0)
+			{
+				onGroundTimer.restart();
+
+				if (velocity.y > 0)
+					velocity.y = 0;
+			}
+		}
+		SetPosition(newPosition);
 	}
-	SetPosition(newPosition);
+}
+
+void Player::LoseLife()
+{
+	lives--;
+	if (lives <= 0)
+	{
+		alive = false;
+	}
+}
+
+int Player::GetLives()
+{
+	return lives;
+}
+
+bool Player::GetAlive()
+{
+	return alive;
+}
+
+int Player::GetCurrentPlayer()
+{
+	return currentPlayer;
 }
 
 void Player::UpdateAcceleration()

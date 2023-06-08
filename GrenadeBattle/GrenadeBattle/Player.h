@@ -14,6 +14,11 @@ public:
     void Draw(sf::RenderTarget& target) override;
     void HandleCollision(PhysicsObject& other) override;
 
+    void LoseLife();
+    int GetLives();
+    bool GetAlive();
+    int GetCurrentPlayer();
+
 private:
 
     void UpdateAcceleration() override;
@@ -36,6 +41,8 @@ private:
     float onGroundCooldown;
 
     int currentPlayer;
+    int lives;
+    bool alive;
 };
 
 

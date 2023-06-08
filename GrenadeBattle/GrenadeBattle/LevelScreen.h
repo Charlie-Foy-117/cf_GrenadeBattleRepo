@@ -3,6 +3,10 @@
 #include "Player.h"
 #include "Platform.h"
 #include "Grenade.h"
+#include "EndText.h"
+#include "LifeCounter.h"
+
+class Game;
 
 class LevelScreen :
     public Screen
@@ -15,6 +19,8 @@ public:
     void Draw(sf::RenderTarget& target) override;
 
     void FireGrenade(sf::Vector2f position, sf::Vector2f fireVelocity, int playerNum);
+
+    void TriggerEndState();
 
 private:
 
@@ -30,5 +36,8 @@ private:
 
     std::vector<Platform*> platforms;
     std::vector<Grenade*> grenades;
+    std::vector<LifeCounter*> lifeCounters;
+
+    EndText endText;
 };
 

@@ -1,4 +1,5 @@
 #include "LevelScreen.h"
+#include "Game.h"
 #include <fstream>
 #include <iostream>
 
@@ -9,6 +10,8 @@ LevelScreen::LevelScreen(Game* newGamePointer)
 	, currentLevel(1)
 	, platforms()
 	, grenades()
+	, lifeCounters()
+	, endText(newGamePointer->GetWindow())
 {
 	Restart();
 }
@@ -17,51 +20,75 @@ void LevelScreen::Update(sf::Time frameTime)
 {
 	if (gameRunning)
 	{
-		for (size_t i = 0; i < players.size(); i++)
+		if (players[0]->GetAlive() != true || players[1]->GetAlive() != true)
 		{
-			players[i]->Update(frameTime);
-			players[i]->SetColliding(false);
+			TriggerEndState();
+			gameRunning = false;
 		}
-
-		for (size_t i = 0; i < grenades.size(); i++)
+		else
 		{
-			grenades[i]->Update(frameTime);
-			grenades[i]->SetColliding(false);
-		}
 
-		for (size_t i = 0; i < players.size(); i++)
-		{
-			for (size_t j = 0; j < platforms.size(); j++)
+			for (size_t i = 0; i < players.size(); i++)
 			{
-				if (players[i]->CheckCollision(*platforms[j]))
+				players[i]->Update(frameTime);
+				players[i]->SetColliding(false);
+			}
+
+			for (size_t i = 0; i < grenades.size(); i++)
+			{
+				grenades[i]->Update(frameTime);
+				grenades[i]->SetColliding(false);
+			}
+
+			for (size_t i = 0; i < players.size(); i++)
+			{
+				for (size_t j = 0; j < platforms.size(); j++)
 				{
-					players[i]->SetColliding(true);
-					platforms[j]->SetColliding(true);
-					players[i]->HandleCollision(*platforms[j]);
-					platforms[j]->HandleCollision(*players[i]);
+					if (players[i]->CheckCollision(*platforms[j]))
+					{
+						players[i]->SetColliding(true);
+						platforms[j]->SetColliding(true);
+						players[i]->HandleCollision(*platforms[j]);
+						platforms[j]->HandleCollision(*players[i]);
+					}
+				}
+			}
+
+			for (size_t i = 0; i < players.size(); i++)
+			{
+				for (size_t j = 0; j < grenades.size(); j++)
+				{
+					if (players[i]->GetCurrentPlayer() != grenades[j]->GetPlayerNum())
+					{
+						if (players[i]->CheckCollision(*grenades[j]))
+						{
+							players[i]->SetColliding(true);
+							grenades[j]->SetColliding(true);
+							players[i]->HandleCollision(*grenades[j]);
+							grenades[j]->HandleCollision(*players[i]);
+						}
+					}
+				}
+			}
+
+			for (size_t i = 0; i < grenades.size(); i++)
+			{
+				for (size_t j = 0; j < platforms.size(); j++)
+				{
+					if (grenades[i]->CheckCollision(*platforms[j]))
+					{
+						grenades[i]->SetColliding(true);
+						platforms[j]->SetColliding(true);
+						grenades[i]->HandleCollision(*platforms[j]);
+						platforms[j]->HandleCollision(*grenades[i]);
+					}
 				}
 			}
 		}
-		
-		for (size_t i = 0; i < grenades.size(); i++)
-		{
-			for (size_t j = 0; j < platforms.size(); j++)
-			{
-				if (grenades[i]->CheckCollision(*platforms[j]))
-				{
-					grenades[i]->SetColliding(true);
-					platforms[j]->SetColliding(true);
-					grenades[i]->HandleCollision(*platforms[j]);
-					platforms[j]->HandleCollision(*grenades[i]);
-				}
-			}
-		}
-		
-
 	}
 	else
 	{
-		//end screen
+		endText.Update(frameTime);
 	}
 }
 
@@ -71,35 +98,86 @@ void LevelScreen::Draw(sf::RenderTarget& target)
 	{
 		platforms[i]->Draw(target);
 	}
-	for (size_t i = 0; i < grenades.size(); i++)
+	for (size_t i = grenades.size(); i > 0; i--)
 	{
-		grenades[i]->Draw(target);
+		if (grenades[i - 1] != nullptr)
+		{
+			//checks to see if grenades is dead 
+			if (grenades[i - 1]->GetAlive() == false)
+			{
+				//clears grenades memory and deletes it from vector
+				delete grenades[i - 1];
+				grenades[i - 1] = nullptr;
+				grenades.erase(grenades.begin() + (i - 1));
+			}
+			else
+			{
+				//draws grenades
+				grenades[i - 1]->Draw(target);
+			}
+		}
 	}
 	for (size_t i = 0; i < players.size(); i++)
 	{
 		players[i]->Draw(target);
 	}
+	for (size_t i = 0; i < lifeCounters.size(); i++)
+	{
+		lifeCounters[i]->Draw(target);
+	}
+
+	//if game is not running draw endText
+	if (!gameRunning)
+	{
+		endText.Draw(target);
+	}
 }
 
 void LevelScreen::FireGrenade(sf::Vector2f position, sf::Vector2f fireVelocity, int playerNum)
 {
-	grenades.push_back(new Grenade());
+	grenades.push_back(new Grenade(playerNum));
 	grenades.back()->SetPlayerNum(playerNum);
 	grenades.back()->SetPosition(position);
 	grenades.back()->SetFireVelocity(fireVelocity);
 }
 
+void LevelScreen::TriggerEndState()
+{
+	int winner = 0;
+	if (players[0]->GetAlive() && !players[1]->GetAlive())
+	{
+		winner = 1;
+	}
+	else if (players[1]->GetAlive() && !players[0]->GetAlive())
+	{
+		winner = 2;
+	}
+	else
+	{
+		//error...
+	}
+
+	//plays win state depending on the players alive status
+	endText.Winner(winner);
+	endText.StartAnimation();
+}
+
 void LevelScreen::Restart()
 {
-	for (size_t i = players.size(); i > 0; i--)
-	{
-		delete players[i];
-		players[i] = nullptr;
-	}
-	for (size_t i = grenades.size(); i > 0; i--)
+	for (size_t i = 0; i < grenades.size(); i++)
 	{
 		delete grenades[i];
 		grenades[i] = nullptr;
+	}
+	for (size_t i = 0; i < lifeCounters.size(); i++)
+	{
+		delete lifeCounters[i];
+		lifeCounters[i] = nullptr;
+	}
+	for (size_t i = 0; i < players.size(); i++)
+	{
+		delete players[i];
+		players[i] = nullptr;
 	}
 
 	players.push_back(new Player(this, 0));
@@ -182,6 +260,14 @@ bool LevelScreen::LoadLevel(std::string fileName)
 		else if (ch == 'T')
 		{
 			platforms.push_back(new Platform(sf::Vector2f(x, y)));
+		}
+		else if (ch == '1')
+		{
+			lifeCounters.push_back(new LifeCounter(players[0], sf::Vector2f(x, y)));
+		}
+		else if (ch == '2')
+		{
+			lifeCounters.push_back(new LifeCounter(players[1], sf::Vector2f(x, y)));
 		}
 		else if (ch == '-')
 		{
