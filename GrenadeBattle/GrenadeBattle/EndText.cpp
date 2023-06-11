@@ -18,6 +18,7 @@ EndText::EndText(sf::RenderWindow* newWindow)
 
 void EndText::Update(sf::Time frameTime)
 {
+	//checks to see if it is to animate
 	if (animatingIn)
 	{
 		float xPos = window->getSize().x / 2.0f - text.getGlobalBounds().width / 2.0f;
@@ -32,10 +33,12 @@ void EndText::Update(sf::Time frameTime)
 		float duration = 1.0f;
 		float time = animationClock.getElapsedTime().asSeconds();
 
+		//uses easing function to create animation effect of the texts position
 		sf::Vector2f newPosition = Easing::EaseOutQuad(begin, change, duration, time);
 
 		SetPosition(newPosition);
 
+		//checks if animation has run longer than duration
 		if (time >= duration)
 		{
 			SetPosition(begin + change);
@@ -70,7 +73,7 @@ void EndText::ResetPosition()
 
 void EndText::Winner(int playerNum)
 {
-	//converts score to string to display
+	//converts player number to string to display
 	std::string winnerString = "Player ";
 	winnerString += std::to_string((int)ceil(playerNum));
 	text.setString(winnerString + " wins!");

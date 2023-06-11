@@ -20,14 +20,16 @@ void LevelScreen::Update(sf::Time frameTime)
 {
 	if (gameRunning)
 	{
+		//checks if either player is dead
 		if (players[0]->GetAlive() != true || players[1]->GetAlive() != true)
 		{
+			//endgame and display winner text
 			TriggerEndState();
 			gameRunning = false;
 		}
 		else
 		{
-
+			//update objects
 			for (size_t i = 0; i < players.size(); i++)
 			{
 				players[i]->Update(frameTime);
@@ -40,6 +42,7 @@ void LevelScreen::Update(sf::Time frameTime)
 				grenades[i]->SetColliding(false);
 			}
 
+			//check collisions
 			for (size_t i = 0; i < players.size(); i++)
 			{
 				for (size_t j = 0; j < platforms.size(); j++)
@@ -58,6 +61,7 @@ void LevelScreen::Update(sf::Time frameTime)
 			{
 				for (size_t j = 0; j < grenades.size(); j++)
 				{
+					//check if grenade num does not match player num
 					if (players[i]->GetCurrentPlayer() != grenades[j]->GetPlayerNum())
 					{
 						if (players[i]->CheckCollision(*grenades[j]))
@@ -144,6 +148,7 @@ void LevelScreen::FireGrenade(sf::Vector2f position, sf::Vector2f fireVelocity, 
 void LevelScreen::TriggerEndState()
 {
 	int winner = 0;
+	//set end text to display winner depending on which player is alive
 	if (players[0]->GetAlive() && !players[1]->GetAlive())
 	{
 		winner = 1;

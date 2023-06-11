@@ -56,9 +56,11 @@ void Player::Update(sf::Time frameTime)
 
 	if (cooldownClock.getElapsedTime().asSeconds() > cooldown)
 	{
+		//fires grenade when pressed
 		if (sf::Joystick::isButtonPressed(currentPlayer, 2))
 		{
 			levelScreen->FireGrenade(sf::Vector2f(GetPosition().x + 25.0f, GetPosition().y + 25.0f), grenadeVelocity, currentPlayer);
+			//restarts clock to restart cooldown period
 			cooldownClock.restart();
 		}
 	}
@@ -70,6 +72,7 @@ void Player::Draw(sf::RenderTarget& target)
 {
 	PhysicsObject::Draw(target);
 
+	//updates pips position on screen when movement occurs
 	float pipTime = 0;
 	float pipTimeStep = 0.1f;
 	for (size_t i = 0; i < pips.size(); ++i)
@@ -104,6 +107,7 @@ void Player::HandleCollision(PhysicsObject& other)
 
 			if (depth.y < 0)
 			{
+				//restarts jump cooldown
 				onGroundTimer.restart();
 
 				if (velocity.y > 0)
@@ -158,6 +162,7 @@ void Player::UpdateAcceleration()
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Joystick::isButtonPressed(currentPlayer, 0))
 	{
+		//checks is timer is less than cooldown, if so let player jump
 		if (onGroundTimer.getElapsedTime().asSeconds() <= onGroundCooldown)
 		{
 			velocity.y = -JUMPSPEED;

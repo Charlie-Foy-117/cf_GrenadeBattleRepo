@@ -20,10 +20,12 @@ Grenade::Grenade(int newPlayerNum)
 
 void Grenade::Update(sf::Time frameTime)
 {
+	//checks to see if grenade has existed less than its spawnLife
 	if (spawnLifeClock.getElapsedTime().asSeconds() < spawnLife)
 	{
 		PhysicsObject::Update(frameTime);
 	}
+	//if not set it to dead
 	else
 	{
 		alive = false;
@@ -64,6 +66,7 @@ void Grenade::HandleCollision(PhysicsObject& other)
 			//move in x direction
 			newPosition.x += depth.x;
 
+			//get collision plane using two points
 			otherLine1 = sf::Vector2f(otherAABB.left, otherAABB.top);
 			otherLine2 = sf::Vector2f(otherAABB.left, otherAABB.top + other.GetHeight());
 			otherPlane = otherLine1 - otherLine2;
@@ -73,6 +76,7 @@ void Grenade::HandleCollision(PhysicsObject& other)
 			//move in y direction
 			newPosition.y += depth.y;
 
+			//get collision plane using two points
 			otherLine1 = sf::Vector2f(otherAABB.left, otherAABB.top);
 			otherLine2 = sf::Vector2f(otherAABB.left + other.GetWidth(), otherAABB.top);
 			otherPlane = otherLine1 - otherLine2;

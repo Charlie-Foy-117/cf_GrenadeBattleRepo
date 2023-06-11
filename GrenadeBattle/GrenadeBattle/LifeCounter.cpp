@@ -26,7 +26,7 @@ void LifeCounter::SetPosition(sf::Vector2f newPosition)
 
 void LifeCounter::SetLifeValue(int numOfLives)
 {
-	//converts score to string to display
+	//converts lives to string to display
 	std::string liveValue;
 	liveValue += std::to_string((int)ceil(numOfLives));
 	lifeCounter.setString(liveValue);
